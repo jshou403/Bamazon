@@ -18,14 +18,14 @@ connection.connect(function (err) {
 });
 
 function updateQuantity(newQuantity,itemPurchased) {
-    var query = connection.query(
+    connection.query(
         "UPDATE inventory SET ? WHERE ?",
         [
             {
                 quantity: newQuantity
             },
             {
-                id: purchase.item
+                id: itemPurchased
             }
         ],
         function (err, res) {
@@ -39,7 +39,7 @@ function displayStore() {
 
     console.log("~~~~~ Welcome to the Bamazon Pet Shop! ~~~~~ \n");
 
-    var query = connection.query("SELECT * FROM inventory", function (err, res) {
+    connection.query("SELECT * FROM inventory", function (err, res) {
         if (err) throw err;
 
         // console.log(res[0]);
@@ -69,15 +69,16 @@ function displayStore() {
         ]).then(function (purchase) {
 
             var itemPurchased = purchase.item;
+            var quantityPurchased = purchase.quantity;
 
-            console.log("\n Order Pending: Item #" + itemPurchased + ", Quantity " + purchase.quantity);
+            console.log("\n Order Pending: Item #" + itemPurchased + ", Quantity " + quantityPurchased);
 
-            var query = connection.query(
+            connection.query(
                 "SELECT * FROM inventory WHERE ?",
                 {
                     id: itemPurchased
                 },
-                function (err, res) {
+                function (err, res, quantityPurchased) {
                     if (err) throw err;
                     console.log("\n ~~~~~ Stock Check In Progress ~~~~~ \n");
 
@@ -96,12 +97,13 @@ function displayStore() {
 
                     } else {
                         console.log("Insufficient Quantity.");
+                        connection.end();
                     }
 
                 }
             )
 
-            connection.end()
+            
 
         });
 
