@@ -11,27 +11,48 @@ var connection = mysql.createConnection({
     database: "pet_dept_db"
 });
 
-connection.connect(function (err) {
+connection.connect(function(err) {
     if (err) throw err;
     console.log("connected as id " + connection.threadId + "\n");
 
     console.log("~~~~~ Welcome to the Bamazon Pet Shop! ~~~~~ \n");
 
-    shopPrompt();
+    displayStore();
 });
 
-function shopPrompt(){
+function displayStore() {
+
+    connection.query("SELECT * FROM inventory", function (err, res) {
+        if (err) throw err;
+
+        // console.log(res[0]);
+
+        for (var i = 0; i < res.length; i++) {
+
+            console.log("Item #" + res[i].id + ": " + res[i].item + " - $ " + res[i].price + " (Qty Available: " + res[i].quantity + ") \n");
+
+        }
+
+        console.log("~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ \n");
+
+        purchasePrompt();
+    }
+    );
+}
+
+function purchasePrompt() {
+
     inquirer.prompt([
         {
             name: "shop",
             type: "list",
-            message: "Do you want to buy something?",
-            choices: ["Yes, I want to shop!","No, thanks!"]
+            message: "Would you like to make a purchase?",
+            choices: ["Yes, I would!", "No, thanks!"]
         }
-    ]).then(function(response){
+    ]).then(function (response) {
 
-        if (response.shop == "Yes, I want to shop!") {
-            displayStore();
+        if (response.shop == "Yes, I would!") {
+            orderPrompt();
 
         } else {
             console.log("\n Have a nice day! \n")
@@ -39,6 +60,68 @@ function shopPrompt(){
         }
 
     })
+
+}
+
+function orderPrompt() {
+
+    inquirer.prompt([
+        {
+            name: "item",
+            message: "What is the item # of the product you'd like to buy?",
+            type: "input"
+        },
+        {
+            type: "input",
+            name: "quantity",
+            message: "How many units would you like to purchase?"
+        }
+    ]).then(function(purchase) {
+
+        var itemPurchased = purchase.item;
+        var quantityPurchased = purchase.quantity;
+
+        console.log("\n ~~~~~ Order Pending for ~~~~~ \n\n Item #" + itemPurchased + " - Quantity: " + quantityPurchased + "\n");
+
+        checkAvailability(itemPurchased, quantityPurchased);
+    })
+}
+
+function checkAvailability(itemPurchased, quantityPurchased) {
+
+    connection.query(
+        "SELECT * FROM inventory WHERE ?",
+        {
+            id: itemPurchased
+        },
+        function (err, res) {
+            if (err) throw err;
+
+            var quantityAvailable = res[0].quantity
+
+            console.log("\n ~~~~~ Checking Availability ~~~~~ \n\n Quantity Available: " + quantityAvailable + "\n");
+            // console.log("Requested: " + quantityPurchased);
+
+            if (quantityAvailable >= quantityPurchased) {
+
+                var newQuantity = quantityAvailable - quantityPurchased;
+                // console.log("Quantity Remaining: " + newQuantity);
+
+                var total = quantityPurchased * res[0].cost;
+                console.log("\n ~~~~~ Order Confirmed ~~~~~ \n\n Order Total: $" + total + "\n")
+
+                updateQuantity(newQuantity, itemPurchased);
+
+            } else {
+
+                console.log("Insufficient Quantity.\n");
+
+                shopAgain();
+
+            }
+
+        }
+    )
 }
 
 function updateQuantity(newQuantity, itemPurchased) {
@@ -75,6 +158,8 @@ function shopAgain() {
 
         if (response.nextstep == "Yes, please!") {
 
+            console.log("\n ~~~~~ Here's what we have in stock: ~~~~~\n");
+
             displayStore();
 
         } else {
@@ -82,79 +167,6 @@ function shopAgain() {
             connection.end();
         }
 
-    }
-    )
-}
-
-function displayStore() {
-
-    console.log("\n ~~~~~ Here's what we have in stock: ~~~~~\n");
-
-    connection.query("SELECT * FROM inventory", function (err, res) {
-        if (err) throw err;
-
-        // console.log(res[0]);
-
-        for (var i = 0; i < res.length; i++) {
-
-            console.log("Item #" + res[i].id + ": " + res[i].item + " - $ " + res[i].price + " (Qty Available: " + res[i].quantity + ") \n");
-
-        }
-
-        console.log("~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ \n");
-
-        inquirer.prompt([
-            {
-                name: "item",
-                message: "What is the item # of the product you'd like to buy?",
-                type: "input"
-            },
-            {
-                type: "input",
-                name: "quantity",
-                message: "How many units would you like to purchase?"
-            }
-        ]).then(function (purchase) {
-
-            var itemPurchased = purchase.item;
-            var quantityPurchased = purchase.quantity;
-
-            console.log("\n ~~~~~ Order Pending for ~~~~~ \n Item #" + itemPurchased + " - Quantity " + quantityPurchased);
-
-            connection.query(
-                "SELECT * FROM inventory WHERE ?",
-                {
-                    id: itemPurchased
-                },
-                function (err, res) {
-                    if (err) throw err;
-                    console.log("\n ~~~~~ Checking Availability ~~~~~ \n");
-
-                    var quantityAvailable = res[0].quantity
-                    console.log("Quantity Available: " + quantityAvailable);
-                    // console.log("Requested: " + quantityPurchased);
-
-                    if (quantityAvailable >= quantityPurchased) {
-
-                        var newQuantity = quantityAvailable - quantityPurchased;
-                        // console.log("Quantity Remaining: " + newQuantity);
-
-                        var total = quantityPurchased * res[0].cost;
-                        console.log("\n ~~~~~ Order Confirmed ~~~~~ \n + Total Cost: " + total)
-
-                        updateQuantity(newQuantity, itemPurchased);
-
-                    } else {
-
-                        console.log("Insufficient Quantity.");
-
-                        shopAgain();
-
-                    }
-
-                }
-            )
-        });
-    }
-    );
+    })
+    
 }
