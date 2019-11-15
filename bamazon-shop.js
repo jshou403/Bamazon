@@ -29,7 +29,7 @@ function displayStore() {
 
         for (var i = 0; i < res.length; i++) {
 
-            console.log("Item #" + res[i].id + ": " + res[i].item + " - $ " + res[i].price + " (Qty Available: " + res[i].quantity + ") \n");
+            console.log("Item #" + res[i].id + ": " + res[i].item + " - $" + res[i].price + " (Qty Available: " + res[i].quantity + ") \n");
 
         }
 
@@ -99,22 +99,28 @@ function checkAvailability(itemPurchased, quantityPurchased) {
 
             var quantityAvailable = res[0].quantity
 
-            console.log("\n ~~~~~ Checking Availability ~~~~~ \n\n Quantity Available: " + quantityAvailable + "\n");
+            console.log("\n ~~~~~ Checking Availability ~~~~~ \n");
             // console.log("Requested: " + quantityPurchased);
 
             if (quantityAvailable >= quantityPurchased) {
 
+                console.log("Quantity Available: " + quantityAvailable + "\n\n");
+
                 var newQuantity = quantityAvailable - quantityPurchased;
                 // console.log("Quantity Remaining: " + newQuantity);
 
-                var total = quantityPurchased * res[0].cost;
-                console.log("\n ~~~~~ Order Confirmed ~~~~~ \n\n Order Total: $" + total + "\n")
+                var itemPrice = res[0].price;
+                // console.log("Quantity Purchased: " + quantityPurchased); 
+                // console.log("Price: " + itemPrice); 
+                
+                var orderTotal = quantityPurchased * itemPrice;
+                console.log("~~~~~ Order Confirmed! ~~~~~ \n\n Order Total: $" + orderTotal + "\n\n")
 
                 updateQuantity(newQuantity, itemPurchased);
 
             } else {
 
-                console.log("Insufficient Quantity.\n");
+                console.log("Insufficient Quantity! \n\n");
 
                 shopAgain();
 
@@ -149,7 +155,7 @@ function shopAgain() {
     inquirer.prompt([
         {
             name: "nextstep",
-            message: "Want to shop again?",
+            message: "Want to view the store again?",
             type: "list",
             choices: ["Yes, please!", "No thanks!"]
         },
