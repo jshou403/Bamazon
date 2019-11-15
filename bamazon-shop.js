@@ -14,10 +14,13 @@ var connection = mysql.createConnection({
 connection.connect(function (err) {
     if (err) throw err;
     console.log("connected as id " + connection.threadId + "\n");
+
+    console.log("~~~~~ Welcome to the Bamazon Pet Shop! ~~~~~ \n");
+
     displayStore();
 });
 
-function updateQuantity(newQuantity,itemPurchased) {
+function updateQuantity(newQuantity, itemPurchased) {
     connection.query(
         "UPDATE inventory SET ? WHERE ?",
         [
@@ -31,13 +34,39 @@ function updateQuantity(newQuantity,itemPurchased) {
         function (err, res) {
             if (err) throw err;
             console.log(res.affectedRows + " products updated!\n");
+            shopAgain();
         }
     );
 }
 
+function shopAgain() {
+
+    inquirer.prompt([
+        {
+            name: "nextstep",
+            message: "Want to shop again?",
+            type: "list",
+            choices: ["Yes, please!", "No thanks!"]
+        },
+
+    ]).then(function (response) {
+
+        if (response.nextstep == "Yes, please!") {
+
+            displayStore();
+
+        } else {
+            console.log("\n Thank you! Come again!\n")
+            connection.end();
+        }
+
+    }
+    )
+}
+
 function displayStore() {
 
-    console.log("~~~~~ Welcome to the Bamazon Pet Shop! ~~~~~ \n");
+    console.log("~~~~~ Here's what we have in stock: ~~~~~ \n");
 
     connection.query("SELECT * FROM inventory", function (err, res) {
         if (err) throw err;
@@ -78,12 +107,12 @@ function displayStore() {
                 {
                     id: itemPurchased
                 },
-                function (err, res, quantityPurchased) {
+                function (err, res) {
                     if (err) throw err;
                     console.log("\n ~~~~~ Stock Check In Progress ~~~~~ \n");
 
                     var quantityAvailable = res[0].quantity
-                    var quantityPurchased = purchase.quantity
+                    // var quantityPurchased = purchase.quantity
                     console.log("Available = " + quantityAvailable + ", Requested = " + quantityPurchased);
 
                     if (quantityAvailable >= quantityPurchased) {
@@ -93,17 +122,20 @@ function displayStore() {
                         console.log("Quantity Remaining = " + newQuantity);
                         console.log("\n ~~~~~ Order Processing ~~~~~ \n");
 
-                        updateQuantity(newQuantity,itemPurchased);
+                        updateQuantity(newQuantity, itemPurchased);
+
 
                     } else {
                         console.log("Insufficient Quantity.");
-                        connection.end();
+
+                        shopAgain();
+
                     }
 
                 }
             )
 
-            
+
 
         });
 
