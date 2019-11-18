@@ -11,7 +11,7 @@ var connection = mysql.createConnection({
     database: "pet_dept_db"
 });
 
-connection.connect(function(err) {
+connection.connect(function (err) {
     if (err) throw err;
     console.log("connected as id " + connection.threadId + "\n");
 
@@ -76,7 +76,7 @@ function orderPrompt() {
             name: "quantity",
             message: "How many units would you like to purchase?"
         }
-    ]).then(function(purchase) {
+    ]).then(function (purchase) {
 
         var itemPurchased = purchase.item;
         var quantityPurchased = purchase.quantity;
@@ -95,32 +95,44 @@ function checkAvailability(itemPurchased, quantityPurchased) {
             id: itemPurchased
         },
         function (err, res) {
+
             if (err) throw err;
 
-            var quantityAvailable = res[0].quantity
-
             console.log("\n ~~~~~ Checking Availability ~~~~~ \n");
-            // console.log("Requested: " + quantityPurchased);
 
-            if (quantityAvailable >= quantityPurchased) {
+            if (res.length > 0) {
 
-                console.log("Quantity Available: " + quantityAvailable + "\n\n");
+                var quantityAvailable = res[0].quantity;
 
-                var newQuantity = quantityAvailable - quantityPurchased;
-                // console.log("Quantity Remaining: " + newQuantity);
+                // console.log("Requested: " + quantityPurchased);
 
-                var itemPrice = res[0].price;
-                // console.log("Quantity Purchased: " + quantityPurchased); 
-                // console.log("Price: " + itemPrice); 
-                
-                var orderTotal = quantityPurchased * itemPrice;
-                console.log("~~~~~ Order Confirmed! ~~~~~ \n\n Order Total: $" + orderTotal + "\n\n")
+                if (quantityAvailable >= quantityPurchased) {
 
-                updateQuantity(newQuantity, itemPurchased);
+
+                    console.log(" Quantity Available: " + quantityAvailable + "\n\n");
+
+                    var newQuantity = quantityAvailable - quantityPurchased;
+                    // console.log("Quantity Remaining: " + newQuantity);
+
+                    var itemPrice = res[0].price;
+                    // console.log("Quantity Purchased: " + quantityPurchased);
+                    // console.log("Price: " + itemPrice);
+
+                    var orderTotal = quantityPurchased * itemPrice;
+                    console.log("~~~~~ Order Confirmed! ~~~~~ \n\n Order Total: $" + orderTotal + "\n\n")
+
+                    updateQuantity(newQuantity, itemPurchased);
+
+                } else {
+
+                    console.log(" Error: Insufficient Quantity - Sorry, We only have " + quantityAvailable + " available. \n\n");
+
+                    shopAgain();
+                }
 
             } else {
 
-                console.log("Insufficient Quantity! \n\n");
+                console.log(" Error: Invalid Item ID# - Please choose a valid Item ID#. \n\n");
 
                 shopAgain();
 
@@ -174,5 +186,5 @@ function shopAgain() {
         }
 
     })
-    
+
 }
