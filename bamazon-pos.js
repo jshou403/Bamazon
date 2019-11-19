@@ -15,13 +15,13 @@ connection.connect(function (err) {
     if (err) throw err;
     console.log("connected as id " + connection.threadId + "\n");
 
-    console.log("~~~~~ Bamazon Pet Department ~~~~~ \n ~~~~~ Hello MANAGER! ~~~~~ \n");
+    console.log("~~~~~ Bamazon Pet Department ~~~~~\n~~~~~ Hello MANAGER! ~~~~~\n");
 
-    displayTasks();
+    displayMgrTasks();
 
 });
 
-function displayTasks() {
+function displayMgrTasks() {
     inquirer.prompt([
         {
             name: "action",
@@ -35,23 +35,23 @@ function displayTasks() {
 
         switch (mgrChoice) {
             case "View Inventory":
-                console.log("\n Current Stock:");
+                console.log("\nCurrent Stock:");
                 viewInventory();
                 break;
             case "View Low Inventory":
-                console.log("\n Low Stock:");
+                console.log("\nLow Stock:");
                 viewLowInventory();
                 break;
             case "Update Inventory":
-                console.log("\n Add Inventory for... ");
+                console.log("\nAdd Inventory for... ");
                 updateInventoryPrompt();
                 break;
             case "Add New Item":
-                console.log("\n New Item... ");
+                console.log("\nAdd New Item... ");
                 addNewPrompt();
                 break;
             case "Exit":
-                console.log("\n ~~~~~ Exiting Manager Tasks ~~~~~ \n ~~~~~ Goodbye! ~~~~~");
+                console.log("\n~~~~~ Exiting Manager Tasks ~~~~~\n~~~~~ Goodbye! ~~~~~");
                 connection.end();
                 break;
             default:
@@ -77,7 +77,7 @@ function viewInventory() {
 
         console.log("~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ \n");
 
-        displayTasks();
+        displayMgrTasks();
     }
     );
 }
@@ -98,7 +98,7 @@ function viewLowInventory() {
 
         console.log("~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~\n");
 
-        displayTasks();
+        displayMgrTasks();
     }
     )
 
@@ -110,35 +110,70 @@ function updateInventoryPrompt() {
         {
             name: "id",
             type: "prompt",
-            message: "Item ID#:"
+            message: "Item ID#:",
+            validate: function (value) {
+                if (isNaN(value) === false) {
+                    return true;
+                }
+                return false;
+            }
         },
         {
             name: "quantity",
             type: "prompt",
-            message: "Add:"
+            message: "Add:",
+            validate: function (value) {
+                if (isNaN(value) === false) {
+                    return true;
+                }
+                return false;
+            }
         }
     ]).then(function (update) {
 
         // store response for ID into variable
-        var updateID = update.id;
+        var updateID = parseFloat(update.id);
         // store response for new quantity into variable
-        var addQuantity = update.quantity;
+        var addQuantity = parseFloat(update.quantity);
 
-        connection.query(
-            "SELECT * FROM inventory WHERE ?", 
-            {
-                id: updateID
-            },
-            function (err, res) {
-                if (err) throw err; 
+        // if quantity to add is 0, tell user quantity not updated
+        if (addQuantity === 0) {
 
-                var currentQuantity = res[0].quantity;
-                
-                newQuantity = parseInt(currentQuantity) + parseInt(addQuantity);
+            console.log("\nItem #" + updateID + " - Quantity Not Updated\n");
+            displayMgrTasks();
 
-                updateInventory(updateID, newQuantity);
-            }
-        )
+            // else.. 
+            // if the response from database has a result, update inventory with the newQuantity 
+            // else the response from database does not have a result, meaning the ID is invalid, tell user ID is invalid and display manager tasks
+
+        } else {
+
+            connection.query(
+                "SELECT * FROM inventory WHERE ?",
+                {
+                    id: updateID
+                },
+                function (err, res) {
+                    if (err) throw err;
+
+                    if (res.length > 0) {
+
+                        var currentQuantity = res[0].quantity;
+                        newQuantity = parseInt(currentQuantity) + parseInt(addQuantity);
+
+                        updateInventory(updateID, newQuantity);
+
+                    } else {
+
+                        console.log("\nError: \nInvalid Item ID# - Please choose valid Item ID#. \n");
+                        displayMgrTasks();
+
+                    }
+
+                }
+            )
+
+        }
 
     })
 
@@ -173,16 +208,16 @@ function displayUpdate(updateID) {
 
     connection.query(
 
-        "SELECT * FROM inventory WHERE ?", 
+        "SELECT * FROM inventory WHERE ?",
         {
             "id": updateID
         },
-        function(err, res) {
-            if (err) throw err; 
-            
-            console.log("Item #" + res[0].id + ": " + res[0].item + " - $" + res[0].price + " - New Qty: " + res[0].quantity + " \n");
+        function (err, res) {
+            if (err) throw err;
 
-            displayTasks();
+            console.log("Item #" + res[0].id + ": " + res[0].item + " - New Qty: " + res[0].quantity + "\n");
+
+            displayMgrTasks();
         }
 
     )
@@ -195,31 +230,63 @@ function addNewPrompt() {
         {
             name: "name",
             type: "input",
-            message: "Item Name:"
+            message: "Item Name:",
+            validate: function (input) {
+                if (input === "") {
+                    return false;
+                }
+                return true;
+            }
         },
         {
             name: "category",
             type: "input",
-            message: "Category:"
+            message: "Category:",
+            validate: function (input) {
+                if (input === "") {
+                    return false;
+                }
+                return true;
+            }
         },
         {
             name: "price",
             type: "input",
-            message: "Price: $"
+            message: "Price: $",
+            validate: function (value) {
+                if (isNaN(value) === false) {
+                    return true;
+                }
+                return false;
+            }
         },
         {
             name: "quantity",
             type: "input",
-            message: "Quantity:"
+            message: "Quantity:",
+            validate: function (value) {
+                if (isNaN(value) === false) {
+                    return true;
+                }
+                return false;
+            }
         }
-    ]).then(function(newItem) {
+    ]).then(function (newItem) {
 
         var itemName = newItem.name;
         var itemCategory = newItem.category;
-        var itemPrice = newItem.price; 
-        var itemQuantity = newItem.quantity;
+        var itemPrice = parseFloat(newItem.price);
+        var itemQuantity = parseFloat(newItem.quantity);
 
-        addNewToDb(itemName, itemCategory, itemPrice, itemQuantity);
+        if (newItem.price <= 0 || newItem.quantity <= 0) {
+
+            console.log("\nError:\nItem price and/or quantity must be more than 0.\n");
+            displayMgrTasks();
+
+        } else {
+
+            addNewToDb(itemName, itemCategory, itemPrice, itemQuantity);
+        }
 
     })
 
@@ -237,7 +304,7 @@ function addNewToDb(itemName, itemCategory, itemPrice, itemQuantity) {
             quantity: itemQuantity
         },
         function (err, res) {
-            if (err) throw err; 
+            if (err) throw err;
 
             // console.log(res);
 
@@ -245,10 +312,10 @@ function addNewToDb(itemName, itemCategory, itemPrice, itemQuantity) {
 
             console.log(itemCategory + " - " + itemName + " - $" + itemPrice + " (Qty Available: " + itemQuantity + ") \n");
 
-            displayTasks();
+            displayMgrTasks();
 
         }
-        
+
     )
 
 }
