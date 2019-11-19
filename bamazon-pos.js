@@ -132,9 +132,9 @@ function updateInventoryPrompt() {
     ]).then(function (update) {
 
         // store response for ID into variable
-        var updateID = parseFloat(update.id);
+        var updateID = parseInt(update.id);
         // store response for new quantity into variable
-        var addQuantity = parseFloat(update.quantity);
+        var addQuantity = parseInt(update.quantity);
 
         // if quantity to add is 0, tell user quantity not updated
         if (addQuantity === 0) {
@@ -280,7 +280,7 @@ function addNewPrompt() {
 
         if (newItem.price <= 0 || newItem.quantity <= 0) {
 
-            console.log("\nError:\nItem price and/or quantity must be more than 0.\n");
+            console.log("\nError:\nItem price and quantity must be more than 0.\n");
             displayMgrTasks();
 
         } else {
