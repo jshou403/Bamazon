@@ -15,7 +15,7 @@ connection.connect(function (err) {
     if (err) throw err;
     console.log("connected as id " + connection.threadId + "\n");
 
-    console.log("~~~~~ Welcome to the Bamazon Pet Shop! ~~~~~ \n");
+    console.log("~~~~~ Welcome to the Bamazon Pet Shop! ~~~~~\n");
 
     displayStore();
 });
@@ -29,7 +29,7 @@ function displayStore() {
 
         for (var i = 0; i < res.length; i++) {
 
-            console.log("Item #" + res[i].id + ": " + res[i].item + " - $" + res[i].price + " (Qty Available: " + res[i].quantity + ") \n");
+            console.log("Item #" + res[i].id + ": " + res[i].item + " - $" + res[i].price + " (Qty Available: " + res[i].quantity + ")\n");
 
         }
 
@@ -51,11 +51,11 @@ function purchasePrompt() {
         }
     ]).then(function (response) {
 
-        if (response.shop == "Yes, I would!") {
+        if (response.shop === "Yes, I would!") {
             orderPrompt();
 
         } else {
-            console.log("\n Have a nice day! \n")
+            console.log("\nGood bye! Have a nice day!\n")
             connection.end();
         }
 
@@ -69,21 +69,42 @@ function orderPrompt() {
         {
             name: "item",
             message: "What is the item # of the product you'd like to buy?",
-            type: "input"
+            type: "input",
+            validate: function (value) {
+                if (isNaN(value) === false) {
+                    return true;
+                }
+                return false;
+            }
         },
         {
             type: "input",
             name: "quantity",
-            message: "How many units would you like to purchase?"
+            message: "How many units would you like to purchase?",
+            validate: function (value) {
+                if (isNaN(value) === false) {
+                    return true;
+                }
+                return false;
+            }
         }
     ]).then(function (purchase) {
 
-        var itemPurchased = purchase.item;
-        var quantityPurchased = purchase.quantity;
+        var itemPurchased = parseInt(purchase.item);
+        var quantityPurchased = parseInt(purchase.quantity);
 
-        console.log("\n ~~~~~ Order Pending for ~~~~~ \n\n Item #" + itemPurchased + " - Quantity: " + quantityPurchased + "\n");
+        console.log("\n\n~~~~~ Order Pending for ~~~~~\n\nItem #" + itemPurchased + " - Quantity: " + quantityPurchased);
 
-        checkAvailability(itemPurchased, quantityPurchased);
+        if (quantityPurchased == 0) {
+
+            console.log("\nError: Invalid Order Quantity.\n\n");
+            shopAgain();
+
+        } else {
+
+            checkAvailability(itemPurchased, quantityPurchased);
+        }
+
     })
 }
 
@@ -98,8 +119,6 @@ function checkAvailability(itemPurchased, quantityPurchased) {
 
             if (err) throw err;
 
-            console.log("\n ~~~~~ Checking Availability ~~~~~ \n");
-
             if (res.length > 0) {
 
                 var quantityAvailable = res[0].quantity;
@@ -108,8 +127,9 @@ function checkAvailability(itemPurchased, quantityPurchased) {
 
                 if (quantityAvailable >= quantityPurchased) {
 
+                    // console.log("\n~~~~~ Checking Availability ~~~~~\n");
 
-                    console.log(" Quantity Available: " + quantityAvailable + "\n\n");
+                    // console.log("Quantity Available: " + quantityAvailable + "\n\n");
 
                     var newQuantity = quantityAvailable - quantityPurchased;
                     // console.log("Quantity Remaining: " + newQuantity);
@@ -119,20 +139,20 @@ function checkAvailability(itemPurchased, quantityPurchased) {
                     // console.log("Price: " + itemPrice);
 
                     var orderTotal = quantityPurchased * itemPrice;
-                    console.log("~~~~~ Order Confirmed! ~~~~~ \n\n Order Total: $" + orderTotal + "\n\n")
+                    console.log("\n\n~~~~~ Order Confirmed! ~~~~~ \n\n" + res[0].item + " x " + quantityPurchased + " at $" + res[0].price + " each\n\nOrder Total = $" + orderTotal + "\n\n")
 
                     updateQuantity(newQuantity, itemPurchased);
 
                 } else {
 
-                    console.log(" Error: Insufficient Quantity - Sorry, We only have " + quantityAvailable + " available. \n\n");
+                    console.log("\nError: Insufficient Quantity - Sorry, We only have " + quantityAvailable + " available.\n\n");
 
                     shopAgain();
                 }
 
             } else {
 
-                console.log(" Error: Invalid Item ID# - Please choose a valid Item ID#. \n\n");
+                console.log("\nError: Invalid Item ID# - Please choose a valid Item ID#.\n\n");
 
                 shopAgain();
 
@@ -167,21 +187,25 @@ function shopAgain() {
     inquirer.prompt([
         {
             name: "nextstep",
-            message: "Want to view the store again?",
+            message: "What would you like to do next?",
             type: "list",
-            choices: ["Yes, please!", "No thanks!"]
+            choices: ["Place Another Order", "View Store", "Leave"]
         },
 
     ]).then(function (response) {
 
-        if (response.nextstep == "Yes, please!") {
+        if (response.nextstep === "View Store") {
 
-            console.log("\n ~~~~~ Here's what we have in stock: ~~~~~\n");
+            console.log("\n~~~~~ Here's what we have in stock: ~~~~~\n");
 
             displayStore();
 
+        } else if (response.nextstep === "Place Another Order") {
+
+            orderPrompt();
+
         } else {
-            console.log("\n Thank you! Come again!\n")
+            console.log("\nThank you! Come again!\n");
             connection.end();
         }
 
