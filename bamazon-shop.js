@@ -13,9 +13,9 @@ var connection = mysql.createConnection({
 
 connection.connect(function (err) {
     if (err) throw err;
-    console.log("connected as id " + connection.threadId + "\n");
+    // console.log("connected as id " + connection.threadId + "\n");
 
-    console.log("~~~~~ Welcome to the Bamazon Pet Shop! ~~~~~\n");
+    console.log("\n~~~~~ Welcome to the Bamazon Pet Shop! ~~~~~\n");
 
     displayStore();
 });
@@ -97,7 +97,7 @@ function orderPrompt() {
 
         if (quantityPurchased == 0) {
 
-            console.log("\nError: Invalid Order Quantity.\n\n");
+            console.log("\nError: Invalid Order Quantity - Must order at least 1.\n\n");
             shopAgain();
 
         } else {

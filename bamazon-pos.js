@@ -13,9 +13,9 @@ var connection = mysql.createConnection({
 
 connection.connect(function (err) {
     if (err) throw err;
-    console.log("connected as id " + connection.threadId + "\n");
+    // console.log("connected as id " + connection.threadId + "\n");
 
-    console.log("~~~~~ Bamazon Pet Department ~~~~~\n~~~~~ Hello MANAGER! ~~~~~\n");
+    console.log("\n~~~~~ Welcome to the Bamazon Pet Shop POS! ~~~~~\n");
 
     displayMgrTasks();
 
@@ -51,7 +51,7 @@ function displayMgrTasks() {
                 addNewPrompt();
                 break;
             case "Exit":
-                console.log("\n~~~~~ Exiting Manager Tasks ~~~~~\n~~~~~ Goodbye! ~~~~~");
+                console.log("\n~~~~~ Exiting Manager Tasks ~~~~~\n\nGoodbye! ");
                 connection.end();
                 break;
             default:
