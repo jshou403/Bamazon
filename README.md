@@ -1,11 +1,10 @@
-# Bamazon
+# bamazon-pet-shop
 
-#### This project consists of two CLI applications that uses node packages to interact with the user. The information is stored locally on mySQL which means these applications can only be run if the user has/downloads: mySQL, a command-line program, and this repository. 
+#### This project consists of two CLI applications that use node packages to interact with the user. The information is stored locally on mySQL which means these applications can only be run if the user has/downloads: mySQL, a command-line program, and this repository. 
     App 1 - Bamazon Pet Shop: See what is available and make a purchase if you wish. 
     App 2 - Bamazon Manager POS: View inventory, update item quantities, and add new items. 
 
-## Link To Github Repository 
-[https://github.com/jshou403/Bamazon](https://github.com/jshou403/Bamazon)
+* [Repository](https://github.com/jshou403/bamazon-pet-shop)
 
 ## How The Apps Work
 The two [node.js] packages used here are [inquirer] and [mySQL]. The [inquirer] node package is used to display a prompt to the user, in this case it will be a list of choices, which then takes the user's response and performs an action that is tied to the response. The [mysql] node package is used to make connections to the mySQL database in order to display information to the user and to complete user requested updates to the database. 
@@ -59,6 +58,6 @@ The two [node.js] packages used here are [inquirer] and [mySQL]. The [inquirer] 
 
 ## Developer
 Jacalyn Shou 
-* [Github](https://jshou403.github.io/)
-* [LinkedIn](https://www.linkedin.com/in/jacalyn-shou/)
 * [Portfolio](http://www.jacalynshou.com/)
+* [Github](https://github.com/jshou403)
+* [LinkedIn](https://www.linkedin.com/in/jacalyn-shou/)
